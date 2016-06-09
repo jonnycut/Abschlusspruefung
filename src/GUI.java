@@ -1,16 +1,13 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,17 +22,35 @@ public class GUI extends JFrame {
     private JPanel jPWest;
     private JPanel jPCenter;
     private JTextField textFieldPath;
-    private JList<String> jList;
+    private JList jList;
     private JButton einlesen;
+    private JButton sucheAutos;
     private JButton baueAutos;
     private DefaultListModel listModel;
     private List<String> textList;
+    List<TreeMap<String, String>> autoTextList;
+    List<Auto> autoObjectList;
 
     public GUI(){
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         this.listModel = new DefaultListModel<String>();
+
+
+
         jList = new JList<>(listModel);
+        jList.setCellRenderer(new ListCellRenderer<String>() {
+            @Override
+            public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel cell = new JLabel();
+                cell.setOpaque(true);
+                cell.setBackground(Color.gray);
+                cell.setText(value);
+                return cell;
+            }
+        });
+
+
 
 
         this.jPNorth = new JPanel(new FlowLayout());
@@ -43,16 +58,72 @@ public class GUI extends JFrame {
 
         this.einlesen = new JButton("Einlesen!");
 
-        this.baueAutos = new JButton("Baue Autos!");
+        this.sucheAutos = new JButton("Finde Autos!");
 
-        baueAutos.addActionListener(new ActionListener() {
+        sucheAutos.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                checkTextList(textList);
+                autoTextList = checkTextList(textList);
+
+                listModel = new DefaultListModel<TreeMap>();
+                jList.setModel(listModel);
+                jList.setCellRenderer(new ListCellRenderer<TreeMap>() {
+
+                    @Override
+                    public Component getListCellRendererComponent(JList<? extends TreeMap> list, TreeMap value, int index, boolean isSelected, boolean cellHasFocus) {
+                        JLabel cell = new JLabel();
+                        cell.setBackground(Color.gray);
+                        cell.setOpaque(true);
+                        cell.setText(value.toString());
+                        if(isSelected){
+                            cell.setBackground(Color.DARK_GRAY);
+                        }
+                        return cell;
+                    }
+                });
+
+                for (TreeMap tM : autoTextList) {
+
+                    listModel.addElement(tM);
+                }
             }
         });
 
-        add(baueAutos, BorderLayout.SOUTH);
+        this.baueAutos = new JButton("Baue Autos!");
+        baueAutos.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                listModel = new DefaultListModel<Auto>();
+                jList.setModel(listModel);
+                jList.setCellRenderer(new ListCellRenderer<Auto>() {
+                    @Override
+                    public Component getListCellRendererComponent(JList<? extends Auto> list, Auto value, int index, boolean isSelected, boolean cellHasFocus) {
+                        JLabel cell = new JLabel();
+                        cell.setBackground(Color.gray);
+                        cell.setText(value.toString());
+                        return cell;
+                    }
+                });
+
+
+                autoObjectList = baueAutos(autoTextList);
+
+
+
+                for(Auto a : autoObjectList){
+                    listModel.addElement(a);
+                    System.out.println(a);
+                }
+
+            }
+        });
+
+
+        jPSouth = new JPanel();
+        jPSouth.add(sucheAutos);
+        jPSouth.add(baueAutos);
+        add(jPSouth, BorderLayout.SOUTH);
 
 
         JScrollPane scrollPane = new JScrollPane();
@@ -65,11 +136,114 @@ public class GUI extends JFrame {
                 textList = textRead(textFieldPath.getText());
                 String[] tempArray = textList.toArray(new String[textList.size()]);
                 listModel.clear();
-                for(String s: tempArray)
+                for (String s : tempArray)
                     listModel.addElement(s);
 
             }
         });
+
+        jPWest = new JPanel();
+        jPWest.setLayout(new BoxLayout(jPWest,BoxLayout.Y_AXIS));
+        jPWest.add(new JLabel("Sortieren"));
+
+        JRadioButton aufsteigend = new JRadioButton("Aufsteigend");
+        JRadioButton absteigend = new JRadioButton("Absteigend");
+        ButtonGroup br = new ButtonGroup();
+        br.add(aufsteigend);
+        br.add(absteigend);
+
+        jPWest.add(aufsteigend);
+        jPWest.add(absteigend);
+        jPWest.add(new JPopupMenu.Separator());
+
+
+
+        JRadioButton nachKW = new JRadioButton("nach kW");
+        JRadioButton nachPreis = new JRadioButton("nach Preis");
+        JRadioButton nachKm = new JRadioButton("nach Laufleistung");
+
+        ButtonGroup br2 = new ButtonGroup();
+        br2.add(nachKm);
+        br2.add(nachKW);
+        br2.add(nachPreis);
+
+        JButton sortieren = new JButton("Sortiere");
+
+        sortieren.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (aufsteigend.isSelected()) {
+                    if (nachKm.isSelected()){
+                        Collections.sort(autoObjectList, Auto.KM_ORDER);
+                        listModel.clear();
+                        for(Auto a:autoObjectList){
+                            listModel.addElement(a);
+                        }
+                    }else if(nachKW.isSelected()){
+                        Collections.sort(autoObjectList, Auto.kW_ORDER);
+                        listModel.clear();
+                        for(Auto a:autoObjectList){
+                            listModel.addElement(a);
+                        }
+                    }else if(nachPreis.isSelected()){
+                        Collections.sort(autoObjectList, Auto.PREIS_ORDER);
+                        listModel.clear();
+                        for(Auto a:autoObjectList){
+                            listModel.addElement(a);
+                        }
+
+                    }else{
+                        Collections.sort(autoObjectList);
+                        listModel.clear();
+                        for(Auto a:autoObjectList){
+                            listModel.addElement(a);
+                        }
+                    }
+
+                } else if (absteigend.isSelected()) {
+                    if (nachKm.isSelected()){
+                        Collections.sort(autoObjectList, Auto.KM_ORDER_DESC);
+                        listModel.clear();
+                        for(Auto a:autoObjectList){
+                            listModel.addElement(a);
+                        }
+                    }else if(nachKW.isSelected()){
+                        Collections.sort(autoObjectList, Auto.kW_ORDER_DESC);
+                        listModel.clear();
+                        for(Auto a:autoObjectList){
+                            listModel.addElement(a);
+                        }
+                    }else if(nachPreis.isSelected()){
+                        Collections.sort(autoObjectList, Auto.PREIS_ORDER_DESC);
+                        listModel.clear();
+                        for(Auto a:autoObjectList){
+                            listModel.addElement(a);
+                        }
+
+                    }else{
+                        Collections.sort(autoObjectList,Auto.DESC);
+                        listModel.clear();
+                        for(Auto a:autoObjectList){
+                            listModel.addElement(a);
+                        }
+                    }
+                }else{
+                    Collections.sort(autoObjectList);
+                    listModel.clear();
+                    for(Auto a: autoObjectList)
+                        listModel.addElement(a);
+                }
+            }
+        });
+
+        jPWest.add(nachKm);
+        jPWest.add(nachKW);
+        jPWest.add(nachPreis);
+        jPWest.add(sortieren);
+
+        add(jPWest, BorderLayout.EAST);
+
+
 
         jPNorth.add(textFieldPath);
         jPNorth.add(einlesen);
@@ -107,17 +281,17 @@ public class GUI extends JFrame {
 
     }
 
-    public List<HashMap<String,String>> checkTextList(List<String> textList){
+    public List<TreeMap<String,String>> checkTextList(List<String> textList){
         System.out.println("Starte Check");
-        List<HashMap<String,String>> autoText = new ArrayList<>();
+        List<TreeMap<String,String>> autoText = new ArrayList<>();
 
         Pattern P_TYP = Pattern.compile("(Limousine|Geländewagen / Pickup|Kleinwagen|Cabrio / Roadster|Van / Minibus|Kombi|Sportwagen / Coupé|Andere)");
-        Pattern P_KM = Pattern.compile("[0-9]*.?[0-9]* *(km|KM|Km|kM)");
-        Pattern P_EZ = Pattern.compile("EZ *[0-9]{1,2}/[\\d]{2,4}");
+        Pattern P_KM = Pattern.compile("(\\d*.?\\d*)( *(km|KM|Km|kM))");
+        Pattern P_EZ = Pattern.compile("(EZ\\s)(\\d{1,2}/\\d{2,4})");
         Pattern P_SCHALTUNG = Pattern.compile("(Schaltung|Automatik)|(schaltung|automatik)");
-        Pattern P_Preis = Pattern.compile("\\d*\\.?\\d* ?€");
-        Pattern P_KW = Pattern.compile("\\d{2,3} * kW");
-        String[] daten = {  "modellMarke" ,"typ" ,"kW", "schaltung","km", "erstZulassung" ,"preis"};
+        Pattern P_Preis = Pattern.compile("(\\d*\\.?\\d*)( ?€)");
+        Pattern P_KW = Pattern.compile("(\\d{2,3})( * kW)");
+        String[] daten = {"modellMarke" ,"typ" ,"kW", "schaltung","km", "erstZulassung" ,"preis"};
         Matcher matcher;
 
 
@@ -125,7 +299,7 @@ public class GUI extends JFrame {
 
         for(int index = 0; index < textList.size(); index++){
 
-            HashMap<String,String> auto = new HashMap<>();
+            TreeMap<String,String> auto = new TreeMap<>();
             for(String s : daten)
                 auto.put(s,"N/A");
 
@@ -140,18 +314,18 @@ public class GUI extends JFrame {
 
                         matcher = P_EZ.matcher(textList.get(index));
                         if(matcher.find()){
-                            auto.put("erstZulassung",matcher.group(0));
+                            auto.put("erstZulassung",matcher.group(2));
                         }
 
                         matcher = P_KM.matcher(textList.get(index));
 
                         if(matcher.find()){
-                            auto.put("km",textList.get(index));
+                            auto.put("km",matcher.group(1));
                         }
 
                         matcher = P_Preis.matcher(textList.get(index));
                         if(matcher.find()){
-                            auto.put("preis",textList.get(index));
+                            auto.put("preis",matcher.group(1));
                         }
 
                         matcher = P_SCHALTUNG.matcher(textList.get(index));
@@ -166,7 +340,7 @@ public class GUI extends JFrame {
 
                         matcher = P_KW.matcher(textList.get(index));
                         if (matcher.find()){
-                            auto.put("kW",matcher.group(0));
+                            auto.put("kW",matcher.group(1));
                         }
 
                         index++;
@@ -176,15 +350,31 @@ public class GUI extends JFrame {
                 }//end innerWhile
 
                 autoText.add(auto);
-                System.out.println(auto);
+
 
             }
 
 
         }
-
+        System.out.println(autoText);
         return autoText;
 
     }
+
+    public List<Auto> baueAutos(List<TreeMap<String,String>> autoTextList){
+
+        List<Auto> autoObjectList = new ArrayList<>();
+
+        for(TreeMap tM : autoTextList){
+            Auto tempAuto = new Auto(tM);
+            autoObjectList.add(tempAuto);
+
+        }
+
+
+        return autoObjectList;
+
+    }
+
 
 }
