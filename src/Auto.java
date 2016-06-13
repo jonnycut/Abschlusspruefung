@@ -143,4 +143,8 @@ public class Auto implements Comparable<Auto> , Comparator<Auto> {
         }
     };
 
+    public void setPreis(int preis) {
+        this.preis=preis;
+
+    }
 }

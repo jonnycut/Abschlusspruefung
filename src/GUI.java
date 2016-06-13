@@ -1,11 +1,12 @@
+import javafx.stage.FileChooser;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -49,6 +50,40 @@ public class GUI extends JFrame {
                 return cell;
             }
         });
+
+        JMenuBar menuBar = new JMenuBar();
+        JMenu dateiMenue = new JMenu("Datei");
+        JMenuItem dateiOeffnen = new JMenuItem("Öffnen");
+        JMenuItem dateiSpeichern = new JMenuItem("Speichern");
+
+        ActionListener dateiOeffnenListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.showOpenDialog(null);
+                textList = textRead(fileChooser.getSelectedFile().getPath());
+                listModel.clear();
+                for(String s : textList){
+                    listModel.addElement(s);
+                }
+
+            }
+        };
+
+        dateiOeffnen.addActionListener(dateiOeffnenListener);
+
+        dateiMenue.add(dateiOeffnen);
+        dateiMenue.add(dateiSpeichern);
+        dateiSpeichern.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                List<Auto> toSaveList = jList.getSelectedValuesList();
+
+                autosSpeichern(toSaveList);
+            }
+        });
+        menuBar.add(dateiMenue);
+        setJMenuBar(menuBar);
 
 
 
@@ -99,9 +134,22 @@ public class GUI extends JFrame {
                 jList.setCellRenderer(new ListCellRenderer<Auto>() {
                     @Override
                     public Component getListCellRendererComponent(JList<? extends Auto> list, Auto value, int index, boolean isSelected, boolean cellHasFocus) {
-                        JLabel cell = new JLabel();
-                        cell.setBackground(Color.gray);
-                        cell.setText(value.toString());
+                        JPanel cell = new JPanel();
+                        cell.setBackground(Color.LIGHT_GRAY);
+                        cell.setOpaque(true);
+
+                        cell.add(new JLabel(value.getModellMarke()));
+                        JLabel jLpreis =new JLabel(value.getPreis() +" €");
+
+                        cell.add(jLpreis);
+                        cell.add(new JLabel(value.getKm()+" Km"));
+
+                        if(isSelected){
+                            cell.setBackground(Color.gray);
+                        }
+
+                        if(hasFocus())
+                            cell.setBackground(Color.WHITE);
                         return cell;
                     }
                 });
@@ -115,6 +163,37 @@ public class GUI extends JFrame {
                     listModel.addElement(a);
                     System.out.println(a);
                 }
+                jList.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if(e.getClickCount()==2){
+                            //Position des Clicks auf einen Index der Liste umrechnen
+                            int index = jList.locationToIndex(e.getPoint());
+
+                            //Element (Auto) der Liste an INDEX holen
+                            Auto a = (Auto) listModel.getElementAt(index);
+
+                            //Label und Textfield des Optionpanes erstellen
+                            JLabel tempLable = new JLabel("Preis ändern:");
+                            JTextField tempText = new JTextField();
+                            tempText.setText(a.getPreis()+"");
+
+                            //Beides in ein Array um es der OptionPane mitzugeben
+                            Object[] tempArray = {tempLable,tempText};
+
+                            int result = JOptionPane.showConfirmDialog(null,tempArray,"Neuer Preis: ",JOptionPane.OK_CANCEL_OPTION);
+                            if(result==JOptionPane.OK_OPTION){
+                                a.setPreis(Integer.parseInt(tempText.getText()));
+                                jList.repaint();
+                            }else if(result==JOptionPane.CANCEL_OPTION){
+
+                            }
+                        }
+
+
+
+                    }
+                });
 
             }
         });
@@ -373,6 +452,19 @@ public class GUI extends JFrame {
 
 
         return autoObjectList;
+
+    }
+
+    public void autosSpeichern(List<Auto> speicherListe) {
+
+        try(BufferedWriter bW = new BufferedWriter(new FileWriter("autoSpeicher.txt"))){
+            for(Auto a : speicherListe){
+                bW.write(a.toString());
+                bW.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
