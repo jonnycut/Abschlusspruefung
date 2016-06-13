@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHP TestSeite</title>
+</head>
+<body>
+<form action="umrechner.php" method="post">
+    <input type="text" name = "zahl" placeholder="Zahl eingeben">
+    <input type="radio" id="kilo" name ="rButton" value="1" checked>
+    <label for="kilo">in Kilometer</label>
+    <input type="radio" id="meile" name="rButton" value="0">
+    <label for="meile">in Meilen</label>
+    <button type="submit">Berechnen</button>
+
+</form>
+<hr>
+<form>
+    <label for="eingabe">Gesuchte Person:</label>
+    <input type="text" id=eingabe name="eingabe" placeholder="gesuchte Person eingeben">
+    <button type="button" id="starteSuche"> Starte Suche</button>
+</form>
+<div id="ausgabe">
+
+</div>
+</body>
+<script src="personensuche.js"></script>
+</html>
