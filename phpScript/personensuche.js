@@ -5,6 +5,21 @@ var button = document.getElementById("starteSuche");
 var ausgabe = document.getElementById("ausgabe");
 
 
+
+var buttenAdd = document.getElementById("personAdd");
+
+buttenAdd.addEventListener('click',function(e){
+
+    let name = document.getElementById("name").value;
+    let alter = document.getElementById("alter").value;
+    let familienstand = document.getElementById("familienstand").value;
+    let wohnort = document.getElementById("wohnort").value;
+    let personenDaten = [name,alter,familienstand,wohnort];
+
+    addPerson(personenDaten);
+});
+
+
 //EventListener am Button registrieren
 button.addEventListener('click', function(e){
     //bei Click das Value aus dem textfeld holen
@@ -34,4 +49,22 @@ function personenSuche(gesuchtePerson){
     //request absenden...----> WICHTIG!!
 
     xmlhttp.send();
+}
+
+function addPerson(personenDaten){
+
+    let jSONDaten = JSON.stringify(personenDaten);
+    let xmlhttp = new XMLHttpRequest();
+    xmlhttp.open('POST','server.php',true);
+
+    xmlhttp.addEventListener('readystatechange',function(){
+
+        if(xmlhttp.readyState ===4 && xmlhttp.status === 200){
+            ausgabe.innerHTML = xmlhttp.responseText;
+        }
+    });
+    console.log(jSONDaten);
+    //xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xmlhttp.send('personenDaten='+jSONDaten);
+
 }

@@ -51,7 +51,7 @@ if (isset($_GET['eingabe']) && $_GET['eingabe'] != "*") {
     }
     echo "Person nicht gefunden!";
 
-} elseif ($_GET['eingabe'] == "*") {
+} elseif (isset($_GET['eingabe'])&& $_GET['eingabe'] == "*") {
     /*Bei eingabe = * werden alle Personen des Arrays in eine Tabelle geschrieben und diese als Ganzes returnt*/
 
     $tHead = $tHead = "<table><thead><tr><th>Name </th><th>Alter </th><th>Familenstand </th><th>Wohnort </th></tr></thead><tbody>";
@@ -67,6 +67,21 @@ if (isset($_GET['eingabe']) && $_GET['eingabe'] != "*") {
 
     echo $tHead.$tInhalt;
 
+
+}elseif(isset($_POST['personenDaten'])){
+
+    $personenDaten = json_decode($_POST['personenDaten']);
+    $key = $personenDaten[0];
+    $value = [
+        'alter'=> $personenDaten[1],
+        'Familienstand' => $personenDaten[2],
+        'Wohnort' => $personenDaten[3]
+    ];
+
+    $personen[$key] = $value;
+
+    //Hinzufügen funktioniert, $Personen wird aber nicht gespeichert....
+    echo "Person wurde hinzugefügt: ".$personenDaten[1];
 
 } else {
 
