@@ -1,9 +1,9 @@
-"use strict"
+"use strict";
 
 var textArea = document.getElementById("textArea");
 
-textArea.addEventListener('keypress', function(e){
-    console.log("Listener aktiviert")
+textArea.addEventListener('keypress', function(){
+
 
     let eingabeString = textArea.value;
 

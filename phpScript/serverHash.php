@@ -16,5 +16,5 @@ if(isset($_GET['eingabeString'])){
 
 }
 
-?>
+
 
